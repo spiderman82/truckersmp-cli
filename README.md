@@ -82,7 +82,7 @@
 
 ### &nbsp;&nbsp;&nbsp;Via Git (recommended)
 
-        bash git clone https://github.com/spiderman82/truckersmp-cli.git
+        git clone https://github.com/spiderman82/truckersmp-cli.git
 
 ### &nbsp;&nbsp;&nbsp;Ready archive
 
@@ -92,7 +92,7 @@
 
 ### &nbsp;&nbsp;&nbsp;Graphical interface (YAD) 
 
-        bash ./truckersmp-yad.sh
+        ./truckersmp-yad.sh
 
 ## GUI features:
 
