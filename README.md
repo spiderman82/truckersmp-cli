@@ -20,7 +20,7 @@
 
 ### &nbsp;&nbsp;Через Git (рекомендуется)
 
-        bash git clone https://github.com/spiderman82/truckersmp-cli.git
+        git clone https://github.com/spiderman82/truckersmp-cli.git
 
 ### &nbsp;&nbsp;Готовый архив
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Скачай архив со страницы релизов и распакуй в любую папку.
@@ -28,7 +28,7 @@
 ## &nbsp;&nbsp;🎮 Использование
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Графический интерфейс (YAD)
 
-        bash ./truckersmp-yad.sh
+        ./truckersmp-yad.sh
         
 ## &nbsp;&nbsp; Возможности GUI:
 
