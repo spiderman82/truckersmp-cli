@@ -1,5 +1,51 @@
 #!/bin/bash
 
+# Определяем язык интерфейса
+if [[ "$LANG" == ru* ]]; then
+    UI_LANG="ru"
+else
+    UI_LANG="en"
+fi
+
+# Тексты на русском и английском
+if [[ "$UI_LANG" == "ru" ]]; then
+    TITLE="TruckersMP Launcher"
+    TEXT="Управление мультиплеером Euro Truck Simulator 2"
+    FIELD_LOGIN="Steam Login:"
+    FIELD_ACTION="Действие:CB"
+    ACTION_START="Запустить игру"
+    ACTION_UPDATE="Обновить игру"
+    FIELD_SKIP="Skip Proton update:CHK"
+    FIELD_RUNTIME="Disable Steam Runtime:CHK"
+    FIELD_DISCORD="Without Discord IPC Bridge:CHK"
+    BTN_RUN="Выполнить"
+    BTN_CANCEL="Закрыть"
+    ERROR_NO_LOGIN="Steam Login не указан!"
+    ERROR_PASSWORD="Пароль не введён. Обновление отменено."
+    ERROR_XTERM="Для обновления нужен xterm.\nУстановите: sudo pacman -S xterm"
+    TITLE_PASSWORD="Steam пароль"
+    TEXT_PASSWORD="Введите пароль для аккаунта"
+    TITLE_LOGS="Логи TruckersMP"
+else
+    TITLE="TruckersMP Launcher"
+    TEXT="Euro Truck Simulator 2 Multiplayer Manager"
+    FIELD_LOGIN="Steam Login:"
+    FIELD_ACTION="Action:CB"
+    ACTION_START="Start game"
+    ACTION_UPDATE="Update game"
+    FIELD_SKIP="Skip Proton update:CHK"
+    FIELD_RUNTIME="Disable Steam Runtime:CHK"
+    FIELD_DISCORD="Without Discord IPC Bridge:CHK"
+    BTN_RUN="Run"
+    BTN_CANCEL="Exit"
+    ERROR_NO_LOGIN="Steam Login is required!"
+    ERROR_PASSWORD="Password not entered. Update cancelled."
+    ERROR_XTERM="xterm is required for update.\nInstall: sudo pacman -S xterm"
+    TITLE_PASSWORD="Steam password"
+    TEXT_PASSWORD="Enter password for account"
+    TITLE_LOGS="TruckersMP Logs"
+fi
+
 # Функция для бэкапа libraryfolders.vdf
 backup_libraryfolders() {
     LOCAL_STEAM_DIR="$HOME/.local/share/Steam"
@@ -70,17 +116,17 @@ backup_libraryfolders
 
 # Главное окно с формой
 result=$("$YAD_GUI" --form \
-    --title="TruckersMP Launcher" \
-    --text="Euro Truck Simulator 2 мультиплеер" \
+    --title="$TITLE" \
+    --text="$TEXT" \
     --image="$SCRIPT_DIR/truckersmp_cli/themes/default/logo.png" \
-    --image-size=64 \
-    --field="Steam Login:" "$SAVED_LOGIN" \
-    --field="Действие:CB" "Запустить игру!Обновить игру" \
-    --field="Skip Proton update:CHK" "$SAVED_SKIP_PROTON" \
-    --field="Disable Steam Runtime:CHK" "$SAVED_DISABLE_RUNTIME" \
-    --field="Without Discord IPC Bridge:CHK" "$SAVED_WITHOUT_DISCORD" \
-    --button="Выполнить:0" \
-    --button="Отмена:1" \
+    --image-size=48 \
+    --field="$FIELD_LOGIN" "$SAVED_LOGIN" \
+    --field="$FIELD_ACTION" "$ACTION_START!$ACTION_UPDATE" \
+    --field="$FIELD_SKIP" "$SAVED_SKIP_PROTON" \
+    --field="$FIELD_RUNTIME" "$SAVED_DISABLE_RUNTIME" \
+    --field="$FIELD_DISCORD" "$SAVED_WITHOUT_DISCORD" \
+    --button="$BTN_RUN:0" \
+    --button="$BTN_CANCEL:1" \
     --width="500")
 
 if [[ $? -ne 0 ]]; then
@@ -99,22 +145,14 @@ echo "SAVED_DISABLE_RUNTIME='$DISABLE_RUNTIME'" >> "$CONFIG_FILE"
 echo "SAVED_WITHOUT_DISCORD='$WITHOUT_DISCORD'" >> "$CONFIG_FILE"
 
 if [[ -z "$LOGIN" ]]; then
-    "$YAD_GUI" --title="Ошибка" --text="Steam Login не указан!" --button="OK:0" --error
+    "$YAD_GUI" --title="$TITLE" --text="$ERROR_NO_LOGIN" --button="$BTN_OK:0" --error
     exit 1
 fi
 
 case "$ACTION" in
-    "Обновить игру")
-        CMD="update"
-        restore_libraryfolders
-        ;;
-    "Запустить игру")
-        CMD="start"
-        restore_libraryfolders
-        ;;
-    *) CMD="start"
-        restore_libraryfolders
-        ;;
+    "$ACTION_UPDATE") CMD="update" ;;
+    "$ACTION_START") CMD="start" ;;
+    *) CMD="start" ;;
 esac
 
 EXTRA_OPTS=""
@@ -131,9 +169,27 @@ fi
 # Формируем команду
 CMD_BASE="$TRUCKERSMP_CLI $CMD ets2mp -n \"$LOGIN\" -vv $EXTRA_OPTS"
 
+# Проверяем наличие xterm (нужен для update)
+if ! command -v xterm &>/dev/null; then
+    "$YAD_GUI" --title="$TITLE" --text="$ERROR_XTERM" --button="$BTN_OK:0" --error
+    exit 1
+fi
+
 # Если команда = update, запускаем в konsole для ручного ввода пароля
 if [[ "$CMD" == "update" ]]; then
-    konsole -e bash -c "$CMD_BASE; echo Нажми Enter для выхода...; read"
+    # Запрашиваем пароль через YAD (GUI)
+    STEAM_PASSWORD=$("$YAD_GUI" --entry \
+        --title="$TITLE_PASSWORD" \
+        --text="$TEXT_PASSWORD $LOGIN:" \
+        --hide-text)
+
+    if [[ -z "$STEAM_PASSWORD" ]]; then
+        "$YAD_GUI" --title="$TITLE" --text="$ERROR_PASSWORD" --button="$BTN_OK:0" --error
+        exit 1
+    fi
+
+    # Запускаем обновление в konsole с передачей пароля через переменную окружения
+    konsole -e bash -c "export STEAM_PASSWORD=\"$STEAM_PASSWORD\"; $CMD_BASE; echo Нажми Enter для выхода...; read"
 else
     # Для start — используем YAD с логами
     LOGFILE="/tmp/truckersmp-launcher.log"
@@ -145,11 +201,11 @@ else
         $CMD_BASE
     ) > "$LOGFILE" 2>&1 &
     CMD_PID=$!
-    tail -f "$LOGFILE" | "$YAD_GUI" --text-info --title="Логи TruckersMP" \
-        --width="1024" --height="500" \
+    tail -f "$LOGFILE" | "$YAD_GUI" --text-info --title="$TITLE_LOGS" \
+        --width="800" --height="500" \
         --scroll \
         --tail \
-        --button="Отмена:1" &
+        --button="$BTN_CANCEL:1" &
     YAD_PID=$!
     wait $CMD_PID
     kill $YAD_PID 2>/dev/null
