@@ -1,5 +1,7 @@
 #!/bin/bash
-
+export ENABLE_VKBASALT=1
+export MANGOHUD=1
+export MANGOHUD_CONFIG="cpu_stats,cpu_temp,cpu_mhz,cpu_color=2e97cb,cpu_text=CPU,gpu_stats,gpu_temp,gpu_core_clock,gpu_mem_clock,vulkan_driver,gpu_name,gpu_color=2e9762,gpu_text=GPU,vram,vram_color=ad64c1,ram,ram_color=c26693,io_color=a491d3,frame_timing=1,frametime_color=00ff00,time,arch,wine,wine_color=eb5b5b,engine_color=eb5b5b,background_alpha=0.2,font_size=24,background_color=020202,text_color=ffffff,toggle_hud=Shift_R+F12,resolution,vkbasalt"
 # Определяем язык интерфейса
 if [[ "$LANG" == ru* ]]; then
     UI_LANG="ru"
@@ -101,6 +103,13 @@ fi
 if [[ ! -f "$YAD_GUI" ]]; then
     zenity --title="Ошибка" --text="Не найден YAD GUI: $YAD_GUI" --error 2>/dev/null || \
     echo "Ошибка: не найден $YAD_GUI"
+    exit 1
+fi
+
+# Проверяем наличие Proton
+PROTON_DIR="/usr/share/steam/compatibilitytools.d/proton-ge-custom"
+if [[ ! -d "$PROTON_DIR" ]] || [[ ! -f "$PROTON_DIR/proton" ]]; then
+    "$YAD_GUI" --title="$TITLE" --text="Proton не найден в $PROTON_DIR\n\nУстановите Proton GE, например:\n  yay -S proton-ge-custom-bin\n\nИли укажите другой путь в конфиге" --button="OK:0" --error
     exit 1
 fi
 
