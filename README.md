@@ -1,5 +1,8 @@
 # **<p align="center">Актуальный форк оригинального truckersmp-cli с поддержкой современных версий Proton и удобным графическим интерфейсом (YAD).</p>**
 
+[![Latest Release](https://img.shields.io/github/v/release/spiderman82/truckersmp-cli?label=Latest%20Release)](https://github.com/spiderman82/truckersmp-cli/releases/latest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Stars](https://img.shields.io/github/stars/spiderman82/truckersmp-cli)](https://github.com/spiderman82/truckersmp-cli/stargazers)
 
 ## 🚀 Особенности форка
 
